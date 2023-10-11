@@ -609,6 +609,53 @@ func RtcReceiveMessage(id int, buffer []byte, size *int) int {
 }
 
 // DataChannel
+type RtcReliability struct {
+	Unordered         bool
+	Unreliable        bool
+	MaxPacketLifeTime int // ignored if reliable
+	MaxRetransmits    int // ignored if reliable
+}
+
+type RtcDataChannelInit struct {
+	Reliability  RtcReliability
+	Protocol     string
+	Negotiated   bool
+	ManualStream bool
+	Stream       uint16
+}
+
+func convertRtcDataChannelInit(goInit *RtcDataChannelInit) *C.rtcDataChannelInit {
+	reliability := convertRtcReliability(goInit.Reliability)
+	cInit := &C.rtcDataChannelInit{
+		reliability:  *reliability,
+		negotiated:   C.bool(goInit.Negotiated),
+		manualStream: C.bool(goInit.ManualStream),
+		stream:       C.uint16_t(goInit.Stream),
+	}
+
+	if goInit.Protocol != "" {
+		cInit.protocol = C.CString(goInit.Protocol)
+	} else {
+		cInit.protocol = C.CString("")
+	}
+
+	return cInit
+}
+
+func freeRtcDataChannelInit(cInit *C.rtcDataChannelInit) {
+	if cInit != nil {
+		C.free(unsafe.Pointer(cInit.protocol))
+	}
+}
+
+func convertRtcReliability(goReliability RtcReliability) *C.rtcReliability {
+	return &C.rtcReliability{
+		unordered:         C.bool(goReliability.Unordered),
+		unreliable:        C.bool(goReliability.Unreliable),
+		maxPacketLifeTime: C.int(goReliability.MaxPacketLifeTime),
+		maxRetransmits:    C.int(goReliability.MaxRetransmits),
+	}
+}
 
 func RtcSetDataChannelCallback(id int, cb RtcDataChannelCallbackFunc) int {
 	rtcDataChannelCallbackFuncMapLock.Lock()
@@ -622,9 +669,13 @@ func RtcCreateDataChannel(id int, label string) int {
 	return int(C.rtcCreateDataChannel(C.int(id), C.CString(label)))
 }
 
-// func rtcCreateDataChannelEx(int pc, label string, init *rtcDataChannelInit) {
+func RtcCreateDataChannelEx(pc int, label string, init *RtcDataChannelInit) int {
+	cInit := convertRtcDataChannelInit(init)
+	ret := C.rtcCreateDataChannelEx(C.int(pc), C.CString(label), cInit)
+	freeRtcDataChannelInit(cInit)
 
-// }
+	return int(ret)
+}
 
 func RtcDeleteDataChannel(dc int) int {
 	return int(C.rtcDeleteDataChannel(C.int(dc)))
@@ -719,8 +770,7 @@ func RtcAddTrack(pc int, mediaDescriptionSdp string) int {
 	return int(C.rtcAddTrack(C.int(pc), C.CString(mediaDescriptionSdp)))
 }
 
-// RTC_C_EXPORT int rtcAddTrackEx(int pc, const rtcTrackInit *init);      // returns tr id
-func rtcAddTrackEx(pc int, init RtcTrackInit) int {
+func RtcAddTrackEx(pc int, init RtcTrackInit) int {
 	cconfig := convertRtcTrackInit(init)
 
 	return int(C.rtcAddTrackEx(C.int(pc), cconfig))
