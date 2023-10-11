@@ -693,9 +693,10 @@ func RtcGetDataChannelProtocol(dc int, buffer []byte, size int) int {
 	return int(C.rtcGetDataChannelProtocol(C.int(dc), (*C.char)(unsafe.Pointer(&buffer[0])), C.int(size)))
 }
 
-// func RtcGetDataChannelReliability(dc int, reliability *RtcReliability) int {
-
-// }
+func RtcGetDataChannelReliability(dc int, reliability *RtcReliability) int {
+	creliability := convertRtcReliability(*reliability)
+	return int(C.rtcGetDataChannelReliability(C.int(dc), creliability))
+}
 
 // Track
 
@@ -1045,14 +1046,8 @@ type RtcWsConfiguration struct {
 }
 
 func RtcCreateWebSocket(url string) int {
-	ws := &websocket{
-		url: C.CString(url),
-	}
-
-	ret := C.rtcCreateWebSocket(ws.url)
-	ws.Id = ret
-
-	return int(ret)
+	curl := C.CString(url)
+	return int(C.rtcCreateWebSocket(curl))
 }
 
 func toCWsConfiguration(goConfig RtcWsConfiguration) *C.rtcWsConfiguration {
@@ -1238,9 +1233,4 @@ type Peer struct {
 type DataChannel struct {
 	Dc    int
 	Label string
-}
-
-type websocket struct {
-	url *C.char
-	Id  C.int
 }
