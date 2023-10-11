@@ -8,6 +8,7 @@
 package api
 
 /*
+#cgo CFLAGS: -std=gnu99
 #cgo LDFLAGS: -L. -ldatachannel
 #include <rtc/rtc.h>
 #include <unistd.h>
