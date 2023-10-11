@@ -923,6 +923,15 @@ func RtcSetSsrcForType(mediaType string, sdp string, buffer []byte, bufferSize i
 
 // #if RTC_ENABLE_WEBSOCKET
 
+type RtcWsConfiguration struct {
+	DisableTlsVerification bool
+	ProxyServer            string
+	Protocols              []string
+	ConnectionTimeoutMs    int
+	PingIntervalMs         int
+	MaxOutstandingPings    int
+}
+
 func RtcCreateWebSocket(url string) int {
 	ws := &websocket{
 		url: C.CString(url),
@@ -934,8 +943,49 @@ func RtcCreateWebSocket(url string) int {
 	return int(ret)
 }
 
-// func RtcCreateWebSocketEx(url string) int {
-// }
+func toCWsConfiguration(goConfig RtcWsConfiguration) *C.rtcWsConfiguration {
+	cConfig := &C.rtcWsConfiguration{
+		disableTlsVerification: C.bool(goConfig.DisableTlsVerification),
+		connectionTimeoutMs:    C.int(goConfig.ConnectionTimeoutMs),
+		pingIntervalMs:         C.int(goConfig.PingIntervalMs),
+		maxOutstandingPings:    C.int(goConfig.MaxOutstandingPings),
+	}
+
+	if goConfig.ProxyServer != "" {
+		cConfig.proxyServer = C.CString(goConfig.ProxyServer)
+	}
+
+	protocolsCount := len(goConfig.Protocols)
+	cConfig.protocolsCount = C.int(protocolsCount)
+	if protocolsCount > 0 {
+		cProtocols := make([]*C.char, protocolsCount)
+		for i, proto := range goConfig.Protocols {
+			cProtocols[i] = C.CString(proto)
+		}
+		cConfig.protocols = (**C.char)(unsafe.Pointer(&cProtocols[0]))
+	}
+
+	return cConfig
+}
+
+func freeCWsConfiguration(cConfig C.rtcWsConfiguration) {
+	if cConfig.proxyServer != nil {
+		C.free(unsafe.Pointer(cConfig.proxyServer))
+	}
+	if cConfig.protocolsCount > 0 {
+		protocolsSlice := (*[1 << 30]*C.char)(unsafe.Pointer(cConfig.protocols))[:cConfig.protocolsCount:cConfig.protocolsCount]
+		for _, proto := range protocolsSlice {
+			C.free(unsafe.Pointer(proto))
+		}
+	}
+}
+
+func RtcCreateWebSocketEx(url string, config *RtcWsConfiguration) int {
+	cconfig := toCWsConfiguration(*config)
+	ret := C.rtcCreateWebSocketEx(C.CString(url), cconfig)
+
+	return int(ret)
+}
 
 func RtcDeleteWebSocket(ws int) int {
 	return int(C.rtcDeleteWebSocket(C.int(ws)))
