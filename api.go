@@ -1224,14 +1224,3 @@ type RtcSctpSettings struct {
 func rtcSetSctpSettings(settings *RtcSctpSettings) int {
 	return int(C.rtcSetSctpSettings((*C.rtcSctpSettings)(unsafe.Pointer(settings))))
 }
-
-type Peer struct {
-	Id string
-	Pc int
-	Dc int
-}
-
-type DataChannel struct {
-	Dc    int
-	Label string
-}

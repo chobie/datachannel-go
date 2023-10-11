@@ -21,8 +21,19 @@ import (
 	rtc "github.com/chobie/datachannel-go"
 )
 
-var peerConnectionMap = make(map[int]*rtc.Peer)
-var datachannelConnectionMap = make(map[int]*rtc.DataChannel)
+type Peer struct {
+	Id string
+	Pc int
+	Dc int
+}
+
+type DataChannel struct {
+	Dc    int
+	Label string
+}
+
+var peerConnectionMap = make(map[int]*Peer)
+var datachannelConnectionMap = make(map[int]*DataChannel)
 var config = rtc.RtcConfiguration{}
 var webSocket int
 
@@ -44,9 +55,9 @@ func randomId(length int) string {
 	return id.String()
 }
 
-func createPeerConnection(config rtc.RtcConfiguration, webSocket int, id string) *rtc.Peer {
+func createPeerConnection(config rtc.RtcConfiguration, webSocket int, id string) *Peer {
 	pc := rtc.RtcCreatePeerConnection(&config)
-	peer := &rtc.Peer{
+	peer := &Peer{
 		Id: id,
 		Pc: pc,
 	}
@@ -126,7 +137,7 @@ func createPeerConnection(config rtc.RtcConfiguration, webSocket int, id string)
 			rtc.RtcSendMessage(id, []byte("hello from moemo"), -1)
 		})
 
-		channel := &rtc.DataChannel{
+		channel := &DataChannel{
 			Dc:    int(dc),
 			Label: label,
 		}
@@ -196,7 +207,7 @@ func main() {
 
 			fmt.Printf("received: %s\n", receievedId)
 			id, _ := strconv.Atoi(receievedId)
-			var peer *rtc.Peer
+			var peer *Peer
 			if target, ok := peerConnectionMap[id]; ok {
 				peer = target
 			} else if receievedType == "offer" {
