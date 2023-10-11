@@ -648,6 +648,65 @@ func RtcGetDataChannelProtocol(dc int, buffer []byte, size int) int {
 
 // Track
 
+type RtcTrackInit struct {
+	Direction   RtcDirection
+	Codec       RtcCodec
+	PayloadType int
+	SSRC        uint32
+	MID         string
+	Name        string
+	MSID        string
+	TrackID     string
+	Profile     string
+}
+
+func convertRtcTrackInit(goInit RtcTrackInit) *C.rtcTrackInit {
+	cInit := &C.rtcTrackInit{
+		direction:   C.rtcDirection(goInit.Direction),
+		codec:       C.rtcCodec(goInit.Codec),
+		payloadType: C.int(goInit.PayloadType),
+		ssrc:        C.uint32_t(goInit.SSRC),
+	}
+
+	// Optional string fields
+	if goInit.MID != "" {
+		cInit.mid = C.CString(goInit.MID)
+	}
+	if goInit.Name != "" {
+		cInit.name = C.CString(goInit.Name)
+	}
+	if goInit.MSID != "" {
+		cInit.msid = C.CString(goInit.MSID)
+	}
+	if goInit.TrackID != "" {
+		cInit.trackId = C.CString(goInit.TrackID)
+	}
+	if goInit.Profile != "" {
+		cInit.profile = C.CString(goInit.Profile)
+	}
+
+	return cInit
+}
+
+func freeCTrackInit(cInit *C.rtcTrackInit) {
+	if cInit.mid != nil {
+		C.free(unsafe.Pointer(cInit.mid))
+	}
+	if cInit.name != nil {
+		C.free(unsafe.Pointer(cInit.name))
+	}
+	if cInit.msid != nil {
+		C.free(unsafe.Pointer(cInit.msid))
+	}
+	if cInit.trackId != nil {
+		C.free(unsafe.Pointer(cInit.trackId))
+	}
+	if cInit.profile != nil {
+		C.free(unsafe.Pointer(cInit.profile))
+	}
+
+}
+
 func RtcSetTrackCallback(id int, cb RtcTrackCallbackFunc) {
 	rtcTrackCallbackFuncLock.Lock()
 	rtcTrackCallbackFuncMap[id] = cb
@@ -660,9 +719,12 @@ func RtcAddTrack(pc int, mediaDescriptionSdp string) int {
 	return int(C.rtcAddTrack(C.int(pc), C.CString(mediaDescriptionSdp)))
 }
 
-// func rtcAddTrackEx() {
+// RTC_C_EXPORT int rtcAddTrackEx(int pc, const rtcTrackInit *init);      // returns tr id
+func rtcAddTrackEx(pc int, init RtcTrackInit) int {
+	cconfig := convertRtcTrackInit(init)
 
-// }
+	return int(C.rtcAddTrackEx(C.int(pc), cconfig))
+}
 
 func RtcDeleteTrack(tr int) int {
 	return int(C.rtcDeleteTrack(C.int(tr)))
