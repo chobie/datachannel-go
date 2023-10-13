@@ -519,12 +519,12 @@ func RtcGetRemoteMaxMessageSize(pc int) int {
 
 // DataChannel, Track, and WebSocket common API
 
-func RtcSetOpenCallback(id int, cb RtcOpenCallbackFunc) {
+func RtcSetOpenCallback(id int, cb RtcOpenCallbackFunc) int {
 	openCallbackMapLock.Lock()
 	openCallbackMap[id] = cb
 	openCallbackMapLock.Unlock()
 
-	C.rtcSetOpenCallback(C.int(id), C.rtcOpenCallbackFunc(C.go_rtcOpenCallbackFunc))
+	return int(C.rtcSetOpenCallback(C.int(id), C.rtcOpenCallbackFunc(C.go_rtcOpenCallbackFunc)))
 }
 
 func RtcSetClosedCallback(id int, cb RtcClosedCallbackFunc) {
