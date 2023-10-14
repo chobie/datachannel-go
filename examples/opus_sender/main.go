@@ -355,7 +355,15 @@ func main() {
 	frameSize := 240
 	waveSlice := (*C.float)(C.malloc(C.size_t(frameSize) * C.size_t(unsafe.Sizeof(C.float(0)))))
 	timestamp := 0
-	for {
+	should_break := false
+	for !should_break {
+		select {
+		case <-sigCh:
+			should_break = true
+			break
+		default:
+		}
+
 		remaing := len(wave) / 2
 		offset := 0
 
