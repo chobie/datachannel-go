@@ -16,6 +16,11 @@ If you encounter issues with dynamic linking resolution at runtime, add the modu
 
 `export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH`.
 
+# Current Status
+
+I have probably implemented all of CAPI, but I haven't tested its functionality.
+At the least, the code in the example works.
+
 # License
 
 MPL 2.0
