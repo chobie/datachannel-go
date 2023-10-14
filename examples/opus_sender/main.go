@@ -75,7 +75,7 @@ func generateSineWave() []C.float {
 
 		// Write the sample to the buffer twice (for stereo interleaved format)
 		buf[i] = C.float(sampleValue)
-		buf[i*2] = C.float(sampleValue)
+		buf[i*2+1] = C.float(sampleValue)
 	}
 	return buf
 }
