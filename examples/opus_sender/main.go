@@ -192,7 +192,7 @@ func main() {
 
 	rtc.RtcPreload()
 
-	rtc.RtcInitLogger(rtc.RTC_LOG_INFO, func(level rtc.RtcLogLevel, message string) {
+	rtc.RtcInitLogger(rtc.RTC_LOG_DEBUG, func(level rtc.RtcLogLevel, message string) {
 		fmt.Printf("%d %s\n", level, message)
 	})
 
@@ -324,27 +324,36 @@ func main() {
 		rtc.RtcChainRtcpNackResponder(Track, 1000)
 	})
 
-	dc := rtc.RtcCreateDataChannel(targetPc.Pc, "test")
-	fmt.Printf("Datachannel Created %d\n", dc)
-	rtc.RtcSetClosedCallback(dc, func(i int, p unsafe.Pointer) {
-		fmt.Printf("DataChannelClosed")
-	})
-	rtc.RtcSetMessageCallback(dc, func(id int, message []byte, size int, ptr unsafe.Pointer) {
-		fmt.Printf("DataChannelMessage")
-	})
-	rtc.RtcSetOpenCallback(dc, func(i int, p unsafe.Pointer) {
-		fmt.Printf("DataChannelOpen")
-		rtc.RtcSendMessage(dc, []byte("Hello"), -1)
-	})
+	// dc := rtc.RtcCreateDataChannel(targetPc.Pc, "test")
+	// fmt.Printf("Datachannel Created %d\n", dc)
+	// rtc.RtcSetClosedCallback(dc, func(i int, p unsafe.Pointer) {
+	// 	fmt.Printf("DataChannelClosed")
+	// })
+	// rtc.RtcSetMessageCallback(dc, func(id int, message []byte, size int, ptr unsafe.Pointer) {
+	// 	fmt.Printf("DataChannelMessage")
+	// })
+	// rtc.RtcSetOpenCallback(dc, func(i int, p unsafe.Pointer) {
+	// 	fmt.Printf("DataChannelOpen")
+	// 	rtc.RtcSendMessage(dc, []byte("Hello"), -1)
+	// })
+	rtc.RtcSetLocalDescription(targetPc.Pc, "offer")
 
 	fmt.Printf("Waiting track open\n")
 	//<-sigTrack
+Loop:
 	for {
 		fmt.Printf("track wait\n")
 		if rtc.RtcIsOpen(Track) {
-			break
+			break Loop
 		}
 		time.Sleep(1 * time.Second)
+
+		select {
+		case _ = <-sigCh:
+			break Loop
+		default:
+		}
+
 	}
 	fmt.Printf("sending sound to %d\n", targetPc.Pc)
 
@@ -378,7 +387,7 @@ func main() {
 
 			//timestamp := rtc.RtcGetCurrentTrackTimestamp(Track)
 			timestamp += 240
-			fmt.Printf("%d %d\n", bytes_encoded, timestamp)
+			//fmt.Printf("%d %d\n", bytes_encoded, timestamp)
 			rtc.RtcSetTrackRtpTimestamp(Track, uint32(timestamp))
 			rtc.RtcSendMessage(Track, output[0:bytes_encoded], bytes_encoded)
 

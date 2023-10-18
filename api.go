@@ -425,6 +425,10 @@ func RtcDeletePeerConnection(id int) {
 	C.rtcDeletePeerConnection(C.int(id))
 }
 
+func RtcSetLocalDescription(pc int, descriptionType string) int {
+	return int(C.rtcSetLocalDescription(C.int(pc), C.CString(descriptionType)))
+}
+
 func RtcSetLocalDescriptionCallback(id int, cb RtcDescriptionCallbackFunc) int {
 	descriptionCallbackMapLock.Lock()
 	descriptionCallbackMap[id] = cb
