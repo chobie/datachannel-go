@@ -1,2 +1,3 @@
+.idea
 *.dylib
 examples/simple_datachannel_client/simple_datachannel_client

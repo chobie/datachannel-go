@@ -394,7 +394,12 @@ func go_rtcSetAvailableCallback(pc C.int, ptr unsafe.Pointer) {
 // NULL cb on the first call will log to stdout
 func RtcInitLogger(level RtcLogLevel, cb RTCLogCallbackFunc) {
 	logCallback = cb
-	C.rtcInitLogger(C.rtcLogLevel(int(level)), C.rtcLogCallbackFunc(C.go_rtcLogCallbackFunc))
+
+	if cb == nil {
+		C.rtcInitLogger(C.rtcLogLevel(int(level)), C.rtcLogCallbackFunc(unsafe.Pointer(nil)))
+	} else {
+		C.rtcInitLogger(C.rtcLogLevel(int(level)), C.rtcLogCallbackFunc(C.go_rtcLogCallbackFunc))
+	}
 }
 
 // User pointer
