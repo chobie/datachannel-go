@@ -23,4 +23,4 @@ At the least, the code in the example works.
 
 # License
 
-MPL 2.0
+MIT License
