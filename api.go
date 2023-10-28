@@ -965,6 +965,10 @@ func RtcChainRtcpNackResponder(tr int, maxStoredPacketsCount uint) int {
 	return int(C.rtcChainRtcpNackResponder(C.int(tr), C.uint(maxStoredPacketsCount)))
 }
 
+func RtcChainPliHandler(tr int, onPli C.rtcPliHandlerCallbackFunc) int {
+	return int(C.rtcChainPliHandler(C.int(tr), C.rtcPliHandlerCallbackFunc(onPli)))
+}
+
 // // Transform seconds to timestamp using track's clock rate, result is written to timestamp
 // RTC_C_EXPORT int rtcTransformSecondsToTimestamp(int id, double seconds, uint32_t *timestamp);
 func RtcTransformSecondsToTimestamp(id int, seconds float64) int {
