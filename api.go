@@ -622,8 +622,8 @@ func RtcReceiveMessage(id int, buffer []byte, size *int) int {
 type RtcReliability struct {
 	Unordered         bool
 	Unreliable        bool
-	MaxPacketLifeTime int // ignored if reliable
-	MaxRetransmits    int // ignored if reliable
+	MaxPacketLifeTime uint // ignored if reliable
+	MaxRetransmits    uint // ignored if reliable
 }
 
 type RtcDataChannelInit struct {
